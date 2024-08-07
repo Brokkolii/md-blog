@@ -11,5 +11,19 @@
             hx-trigger="load"
             class="posts"
         ></div>
+        <h1>Selected Post</h1>
+        <button
+            hx-get="http://localhost:12345/posts/1"
+            hx-trigger="click"
+            hx-target="#selected-post"
+        >select post 1</button>
+        <button
+            hx-get="http://localhost:12345/posts/2"
+            hx-trigger="click"
+            hx-target="#selected-post"
+        >select post 2</button>
+        <div
+           id="selected-post"
+        ></div>
     </body>
 </html>

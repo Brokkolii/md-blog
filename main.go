@@ -30,6 +30,7 @@ func initDB() {
 
 func getPostEndpoint(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Cache-Control", "public, max-age=10")
 	params := mux.Vars(r)
 	id := params["id"]
 
