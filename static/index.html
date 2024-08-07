@@ -1,17 +1,15 @@
 <!doctype html>
 <html>
     <head>
-        <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+        <script src="/htmx@1.6.1.js"></script>
+        <link rel="stylesheet" href="styles.css"></link>
     </head>
     <body>
         <h1>My Blog</h1>
-        <button
-            hx-get="http://localhost:12345/posts/2"
+        <div
+            hx-get="http://localhost:12345/posts"
             hx-trigger="load"
-            hx-target="#content"
-        >
-            Load Post
-        </button>
-        <div id="content"></div>
+            class="posts"
+        ></div>
     </body>
 </html>

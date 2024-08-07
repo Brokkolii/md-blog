@@ -1,0 +1,23 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: lavender;
+    padding: 8px;
+}
+
+.posts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.post {
+    padding: 8px;
+    background-color: lavenderblush;
+    border: 1px solid slateblue;
+    border-radius: 4px;
+}

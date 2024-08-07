@@ -46,11 +46,43 @@ func getPostEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(markdownContent)
 
-	// Convert Markdown to HTML
-	unsafeHtmlContent := blackfriday.Run([]byte(markdownContent))
+	w.Write(postToHtml([]byte(markdownContent)))
+}
+
+func getPostsEndpoint(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	rows, err := db.Query("SELECT content FROM posts")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	htmlContent := []byte("")
+	for rows.Next() {
+		var markdownContent string
+		err := rows.Scan(&markdownContent)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		htmlContent = append(htmlContent, postToHtml([]byte(markdownContent))...)
+	}
+
+	w.Write(htmlContent)
+}
+
+func postToHtml(content []byte) []byte {
+	unsafeHtmlContent := blackfriday.Run(content)
 	saveHtmlContent := bluemonday.UGCPolicy().SanitizeBytes(unsafeHtmlContent)
 
-	w.Write(saveHtmlContent)
+	prefix := []byte("<div class='post'>")
+	postfix := []byte("</div>")
+	html := append(append(prefix, saveHtmlContent...), postfix...)
+
+	return html
 }
 
 func main() {
@@ -61,6 +93,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// api endpoints
+	router.HandleFunc("/posts", getPostsEndpoint).Methods("GET")
 	router.HandleFunc("/posts/{id}", getPostEndpoint).Methods("GET")
 
 	// static pages
