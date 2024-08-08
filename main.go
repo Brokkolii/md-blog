@@ -3,15 +3,31 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"text/template"
 
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
 
 	_ "github.com/lib/pq"
 )
+
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
+func newTemplate() *Template {
+	return &Template{
+		templates: template.Must(template.ParseGlob("./views/*.html")),
+	}
+}
 
 var db *sql.DB
 
@@ -28,62 +44,62 @@ func initDB() {
 	fmt.Println("Connected to the database!")
 }
 
-func getPostEndpoint(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	w.Header().Set("Cache-Control", "public, max-age=10")
-	params := mux.Vars(r)
-	id := params["id"]
-
-	// Static Markdown text
-	var markdownContent string
-	err := db.QueryRow("SELECT content FROM posts WHERE id = $1", id).Scan(&markdownContent)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Post not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	fmt.Println(markdownContent)
-
-	w.Write(postToHtml([]byte(markdownContent)))
+type Post struct {
+	Content string
 }
 
-func getPostsEndpoint(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
+func newPost() Post {
+	return Post{
+		Content: "",
+	}
+}
+
+func getPost(c echo.Context) error {
+	id := c.Param("id")
+
+	var md string
+	err := db.QueryRow("SELECT content FROM posts WHERE id = $1", id).Scan(&md)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	html := mdToHtml([]byte(md))
+	var post = newPost()
+	post.Content = string(html)
+
+	return c.Render(http.StatusOK, "post", post)
+}
+
+func getPosts(c echo.Context) error {
 
 	rows, err := db.Query("SELECT content FROM posts")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	defer rows.Close()
 
-	htmlContent := []byte("")
+	var posts []Post
 	for rows.Next() {
 		var markdownContent string
 		err := rows.Scan(&markdownContent)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		htmlContent = append(htmlContent, postToHtml([]byte(markdownContent))...)
+		html := mdToHtml([]byte(markdownContent))
+		var post = newPost()
+		post.Content = string(html)
+		posts = append(posts, post)
 	}
 
-	w.Write(htmlContent)
+	return c.Render(http.StatusOK, "posts", posts)
 }
 
-func postToHtml(content []byte) []byte {
+func mdToHtml(content []byte) []byte {
 	unsafeHtmlContent := blackfriday.Run(content)
 	saveHtmlContent := bluemonday.UGCPolicy().SanitizeBytes(unsafeHtmlContent)
 
-	prefix := []byte("<div class='post'>")
-	postfix := []byte("</div>")
-	html := append(append(prefix, saveHtmlContent...), postfix...)
-
-	return html
+	return saveHtmlContent
 }
 
 func main() {
@@ -91,14 +107,22 @@ func main() {
 	initDB()
 	defer db.Close()
 
-	router := mux.NewRouter()
+	e := echo.New()
+	e.Renderer = newTemplate()
+
+	// statics
+	e.Static("/assets", "static")
 
 	// api endpoints
-	router.HandleFunc("/posts", getPostsEndpoint).Methods("GET")
-	router.HandleFunc("/posts/{id}", getPostEndpoint).Methods("GET")
+	e.GET("/posts", func(c echo.Context) error {
+		return getPosts(c)
+	})
+	e.GET("/posts/:id", func(c echo.Context) error {
+		return getPost(c)
+	})
+	e.GET("/", func(c echo.Context) error {
+		return c.Render(http.StatusOK, "page", nil)
+	})
 
-	// static pages
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
-
-	http.ListenAndServe(":12345", router)
+	e.Start(":12345")
 }
