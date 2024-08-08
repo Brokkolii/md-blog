@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"md-blog-api/database"
 	"net/http"
@@ -43,6 +44,15 @@ func main() {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		return c.Render(http.StatusOK, "posts", posts)
+	})
+	e.POST("/posts/create", func(c echo.Context) error {
+		content := c.FormValue("content")
+		post, err := database.CreatePost(content)
+		if err != nil {
+			fmt.Println("got here", err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return c.Render(http.StatusOK, "post", post)
 	})
 	e.GET("/posts/:id", func(c echo.Context) error {
 		id := c.Param("id")

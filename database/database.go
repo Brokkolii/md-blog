@@ -36,7 +36,7 @@ func GetPost(id string) (Post, error) {
 	var md string
 	err := Db.QueryRow("SELECT content FROM posts WHERE id = $1", id).Scan(&md)
 	if err != nil {
-		return newPost(""), err
+		return Post{}, err
 	}
 	html := mdtohtml.Parse(md)
 	post := newPost(html)
@@ -56,7 +56,6 @@ func GetPosts() ([]Post, error) {
 		var markdownContent string
 		err := rows.Scan(&markdownContent)
 		if err != nil {
-			// return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 			return []Post{}, err
 		}
 
@@ -66,4 +65,10 @@ func GetPosts() ([]Post, error) {
 	}
 
 	return posts, nil
+}
+
+func CreatePost(content string) (Post, error) {
+	Db.Exec("INSERT INTO posts (content) VALUES ($1)", content)
+	post := newPost(content)
+	return post, nil
 }
