@@ -45,6 +45,7 @@ func main() {
 		}
 		return c.Render(http.StatusOK, "posts", posts)
 	})
+
 	e.POST("/posts/create", func(c echo.Context) error {
 		content := c.FormValue("content")
 		post, err := database.CreatePost(content)
@@ -54,6 +55,7 @@ func main() {
 		}
 		return c.Render(http.StatusOK, "post", post)
 	})
+
 	e.GET("/posts/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		post, err := database.GetPost(id)
@@ -62,6 +64,7 @@ func main() {
 		}
 		return c.Render(http.StatusOK, "post", post)
 	})
+
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "page", nil)
 	})

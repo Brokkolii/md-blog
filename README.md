@@ -11,3 +11,7 @@ run api
 ```
 go run .
 ```
+or for dev-server
+```
+air
+```
