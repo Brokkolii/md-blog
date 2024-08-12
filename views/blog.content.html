@@ -2,7 +2,14 @@
 <h1>Blog Content</h1>
 <div class="posts">
     {{ range . }}
-    <div class="post">{{ .Content }}</div>
+    <div class="post">
+        <div class="content">{{ .Content }}</div>
+        <div class="buttons">
+            <a hx-get="/content/post/1" hx-target="main" hx-push-url="/post/1"
+                >go to</a
+            >
+        </div>
+    </div>
     {{ end }}
 </div>
 {{ end }}
