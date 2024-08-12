@@ -43,6 +43,7 @@ func main() {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
+		c.Response().Header().Set("Cache-Control", "no-cache")
 		return c.Render(http.StatusOK, "posts", posts)
 	})
 
@@ -53,6 +54,7 @@ func main() {
 			fmt.Println("got here", err)
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
+		c.Response().Header().Set("Cache-Control", "no-cache")
 		return c.Render(http.StatusOK, "post", post)
 	})
 
@@ -62,10 +64,12 @@ func main() {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
+		c.Response().Header().Set("Cache-Control", "public, max-age=86400")
 		return c.Render(http.StatusOK, "post", post)
 	})
 
 	e.GET("/", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "no-cache")
 		return c.Render(http.StatusOK, "page", nil)
 	})
 
