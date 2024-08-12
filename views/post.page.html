@@ -1,0 +1,10 @@
+{{ block "post.page" . }}
+<!doctype html>
+<html>
+    {{ template "head" }}
+    <body>
+        {{ template "nav" . }}
+        <main>{{ template "post.content" . }}</main>
+    </body>
+</html>
+{{ end }}

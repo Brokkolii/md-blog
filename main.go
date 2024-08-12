@@ -34,18 +34,7 @@ func main() {
 	e := echo.New()
 	e.Renderer = newTemplate()
 
-	// statics
-	e.Static("/assets", "static")
-
-	// api endpoints
-	e.GET("api/posts", func(c echo.Context) error {
-		posts, err := database.GetPosts()
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-		}
-		c.Response().Header().Set("Cache-Control", "no-cache")
-		return c.Render(http.StatusOK, "posts", posts)
-	})
+	// api
 
 	e.POST("api/posts/create", func(c echo.Context) error {
 		content := c.FormValue("content")
@@ -58,20 +47,78 @@ func main() {
 		return c.Render(http.StatusOK, "post", post)
 	})
 
-	e.GET("api/posts/:id", func(c echo.Context) error {
+	// content
+
+	e.GET("content/blog", func(c echo.Context) error {
+		// get posts from db
+		posts, err := database.GetPosts()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		c.Response().Header().Set("Cache-Control", "no-cache")
+		return c.Render(http.StatusOK, "blog.content", posts)
+	})
+
+	e.GET("content/post/create", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "create-post.content", nil)
+	})
+
+	e.GET("content/post/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		post, err := database.GetPost(id)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		c.Response().Header().Set("Cache-Control", "public, max-age=86400")
-		return c.Render(http.StatusOK, "post", post)
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "post.content", post)
+	})
+
+	e.GET("content/home", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "home.content", nil)
+	})
+
+	// pages
+
+	e.GET("/blog", func(c echo.Context) error {
+		// get posts from db
+		posts, err := database.GetPosts()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		c.Response().Header().Set("Cache-Control", "no-cache")
+		return c.Render(http.StatusOK, "blog.page", posts)
+	})
+
+	e.GET("/post/create", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "create-post.page", nil)
+	})
+
+	e.GET("/post/:id", func(c echo.Context) error {
+		id := c.Param("id")
+		post, err := database.GetPost(id)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "post.page", post)
+	})
+
+	e.GET("/home", func(c echo.Context) error {
+		c.Response().Header().Set("Cache-Control", "public, max-age=6400")
+		return c.Render(http.StatusOK, "home.page", nil)
 	})
 
 	e.GET("/", func(c echo.Context) error {
-		c.Response().Header().Set("Cache-Control", "no-cache")
-		return c.Render(http.StatusOK, "page", nil)
+		return c.Redirect(http.StatusPermanentRedirect, "/home")
 	})
+
+	// statics
+	e.Static("/assets", "static")
 
 	e.Start(":12345")
 }

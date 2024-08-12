@@ -1,0 +1,10 @@
+{{ block "create-post.page" . }}
+<!doctype html>
+<html>
+    {{ template "head" }}
+    <body>
+        {{ template "nav" . }}
+        <main>{{ template "create-post.content" . }}</main>
+    </body>
+</html>
+{{ end }}

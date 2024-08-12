@@ -1,0 +1,8 @@
+{{ block "blog.content" . }}
+<h1>Blog Content</h1>
+<div class="posts">
+    {{ range . }}
+    <div class="post">{{ .Content }}</div>
+    {{ end }}
+</div>
+{{ end }}

@@ -1,0 +1,8 @@
+{{ block "create-post.content" . }}
+<h1>Create Post Content</h1>
+<form hx-post="/api/posts/create" hx-target=".posts" hx-swap="afterbegin">
+    <label for="content"></label>
+    <textarea id="content" name="content"></textarea>
+    <button type="submit">Submit</button>
+</form>
+{{ end }}

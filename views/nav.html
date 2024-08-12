@@ -1,0 +1,19 @@
+{{ block "nav" . }}
+<nav>
+    <ul>
+        <li hx-get="/content/home" hx-target="main" hx-push-url="/home">
+            Home
+        </li>
+        <li hx-get="/content/blog" hx-target="main" hx-push-url="/blog">
+            Blog
+        </li>
+        <li
+            hx-get="/content/post/create"
+            hx-target="main"
+            hx-push-url="/post/create"
+        >
+            Create
+        </li>
+    </ul>
+</nav>
+{{ end }}
