@@ -38,7 +38,7 @@ func main() {
 	e.Static("/assets", "static")
 
 	// api endpoints
-	e.GET("/posts", func(c echo.Context) error {
+	e.GET("api/posts", func(c echo.Context) error {
 		posts, err := database.GetPosts()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -47,7 +47,7 @@ func main() {
 		return c.Render(http.StatusOK, "posts", posts)
 	})
 
-	e.POST("/posts/create", func(c echo.Context) error {
+	e.POST("api/posts/create", func(c echo.Context) error {
 		content := c.FormValue("content")
 		post, err := database.CreatePost(content)
 		if err != nil {
@@ -58,7 +58,7 @@ func main() {
 		return c.Render(http.StatusOK, "post", post)
 	})
 
-	e.GET("/posts/:id", func(c echo.Context) error {
+	e.GET("api/posts/:id", func(c echo.Context) error {
 		id := c.Param("id")
 		post, err := database.GetPost(id)
 		if err != nil {
